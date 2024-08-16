@@ -39,7 +39,7 @@ void Graph::addEdge(int v, int w)
 void Graph::BFS(int s)
 {
     // Mark all the vertices as not visited
-    vector<bool> visited;
+    vector<bool> visited; // or vector<bool> visited(V, false);
     visited.resize(V,false);
  
     // Create a queue for BFS

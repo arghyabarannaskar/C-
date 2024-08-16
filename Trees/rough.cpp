@@ -1,24 +1,28 @@
 #include<iostream>
 using namespace std;
 
-struct Node{
+struct btreenode{
+    btreenode *left;
     int data;
-    Node *left;
-    Node *right;
+    btreenode *right;
 };
 
 class btree{
     private:
-        Node *root;
-        void buildtree(Node **curr, int num);
-        void inorder(Node *curr);
-        void del(Node *curr);
-        void locate(Node *curr, Node **par, Node **x, bool *found, int data);
+        btreenode *root;
+        void buildtree(btreenode **root, int data);
+        void inorder(btreenode *root);
+        void locate(btreenode *root, btreenode **par, btreenode **x, bool *found, int data);
+        void del(btreenode *root);
 
     public:
+        int height(){
+            return getHeight(root);
+        }
+        int getHeight(btreenode *root);
         btree();
+        void insert(int data);
         void display();
-        void insert(int num);
         void remove(int data);
         ~btree();
 };
@@ -27,43 +31,62 @@ btree::btree(){
     root = NULL;
 }
 
-void btree::insert(int num){
-    buildtree(&root, num);
+void btree::insert(int data){
+    buildtree(&root, data);
 }
 
-void btree::buildtree(Node **curr, int num){
-    if(*curr == NULL){
-        *curr = new Node;
-        (*curr)->data = num;
+void btree::buildtree(btreenode **curr, int data){
+    if((*curr) == NULL){
+        (*curr) = new btreenode;
+        (*curr)->data = data;
         (*curr)->left = NULL;
         (*curr)->right = NULL;
-    }
-
-    if(num<(*curr)->data)
-        buildtree(&((*curr)->left), num);
-
-    if(num> (*curr)->data)
-        buildtree(&((*curr)->right), num);
+        return;
+    }else if(data < (*curr)->data){
+        buildtree(&((*curr)->left), data);
+    }else
+        buildtree(&((*curr)->right), data);
 }
 
 void btree::display(){
+    cout << endl;
     inorder(root);
 }
 
-void btree::inorder(Node *curr){
-    if(curr){
-        inorder(curr->left);
-        cout << curr->data << " ";
-        inorder(curr->right);
+void btree::inorder(btreenode *root){
+    if(root){
+        inorder(root->left);
+        cout << root->data << " ";
+        inorder(root->right);
+    }
+}
+
+void btree::locate(btreenode *root, btreenode **parent, btreenode **x, bool *found, int data){
+    btreenode *curr = root;
+    *found = false;
+
+    while(curr){
+        if(curr->data == data){
+            *found = true;
+            *x = curr;
+            return;
+        }
+
+        *parent = curr;
+
+        if(data < curr->data)
+            curr = curr->left;
+        else
+            curr = curr->right;
     }
 }
 
 void btree::remove(int data){
-    bool found;
-    Node *parent, *x, *xsucc;
+    bool found = false;
+    btreenode *parent = NULL, *x = NULL, *xsucc = NULL;
     locate(root, &parent, &x, &found, data);
     if(!found){
-        cout << "value doesn't exist" << endl;
+        cout << "Data is not present.. Aborting...";
         return;
     }
 
@@ -74,12 +97,13 @@ void btree::remove(int data){
             parent = xsucc;
             xsucc = xsucc->left;
         }
+
         x->data = xsucc->data;
         x = xsucc;
     }
 
-    if(x->left == NULL && !x->right){
-        if(parent->left == x)
+    if(x->left == NULL && x->right== NULL){
+        if(x == parent->left)
             parent->left = NULL;
         else
             parent->right = NULL;
@@ -87,16 +111,7 @@ void btree::remove(int data){
         return;
     }
 
-    if(x->left && !x->right){
-        if(parent->left == x)
-            parent->left = x->left;
-        else
-            parent->right = x->left;
-        delete x;
-        return;
-    }
-
-    if(!x->left && x->right){
+    if(x->left == NULL && x->right != NULL){
         if(parent->left == x)
             parent->left = x->right;
         else
@@ -104,49 +119,58 @@ void btree::remove(int data){
         delete x;
         return;
     }
-}
 
-void btree::locate(Node *curr, Node **p, Node **x, bool *f, int data){
-    *f = false;
-    *p = NULL;
-    while(curr){
-        if(data == curr->data){
-            *f = true;
-            *x = curr;
+    if(x->left != NULL && x->right == NULL){
+        if(x == root){
+            btreenode *temp = root;
+            root = root->left;
+            delete temp;
             return;
         }
-        *p = curr;
-        if(data < curr->data)
-            curr = curr->left;
+        if(parent->left == x)
+            parent->left = x->left;
         else
-            curr = curr->right;
+            parent->right = x->left;
+        delete x;
+        return;
     }
+}
+
+void btree::del(btreenode *root){
+    if(root){
+        del(root->left);
+        del(root->right);
+        delete root;
+    }
+}
+
+int btree::getHeight(btreenode *root){
+    if(root == NULL)
+        return -1;
+    return 1 + max(getHeight(root->left), getHeight(root->right));
 }
 
 btree::~btree(){
     del(root);
 }
 
-void btree::del(Node *curr){
-    if(curr != NULL){
-        del(curr->left);
-        del(curr->right);
-        delete curr;
-    }
-}
-
 int main(){
-    btree bt;
-    bt.insert(20);
-    bt.insert(15);
-    bt.insert(10);
-    bt.insert(25);
-    bt.insert(30);
+    btree tree;
+    tree.insert(20);
+    tree.insert(30);
+    tree.insert(10);
+    tree.insert(25);
+    tree.insert(15);
 
-    bt.display();
-    bt.remove(15);
-    cout << endl;
-    bt.display();
+    cout << "Height of the tree is: " << tree.height() << endl;
+
+    tree.display();
+    tree.remove(25);
+    tree.display();
+    tree.remove(30);
+    tree.display();
+    tree.remove(20);
+    tree.display();
 
     return 0;
 }

@@ -130,7 +130,7 @@ void btree::remove(int num){
     }
 
     if(x->left == NULL && x->right != NULL){
-        if(parent->left = x)
+        if(parent->left == x)
             parent->left = x->right;
         else
             parent->right = x->right;
@@ -148,8 +148,8 @@ void btree::remove(int num){
     }
 }
 
-void btree::locate(Node *curr, Node **par, Node **x, bool *found, int num){
-    *found = false;
+void btree::locate(Node *curr, Node **par, Node **x, bool *found, int num){ //this fn stores the to be deleted node's address in (*x) 
+    *found = false;                                                         // and to be deleted node's parent's address in (*par)
     while(curr!= NULL){
         if(num == curr->data){
             *found = true;
